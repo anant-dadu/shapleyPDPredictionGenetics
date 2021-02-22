@@ -34,7 +34,7 @@ class ShapleyExplainations:
 
     def trainXGBModel(self, data, feature_names, label_name):
         logger.info('Training starts...')
-        X_train, X_valid, y_train, y_valid = train_test_split(data, data[label_name] , test_size=0.2, random_state=7)
+        X_train, X_valid, y_train, y_valid = train_test_split(data, data[label_name] , test_size=0.3, random_state=42)
         ID_train = X_train['ID']
         ID_test = X_valid['ID']
         X_train = X_train[feature_names].copy()
@@ -82,7 +82,7 @@ class ShapleyExplainations:
     
     def trainXGBModel_cpu(self, data, feature_names, label_name):
         logger.info('Training starts...')
-        X_train, X_valid, y_train, y_valid = train_test_split(data, data[label_name] , test_size=0.2, random_state=7)
+        X_train, X_valid, y_train, y_valid = train_test_split(data, data[label_name] , test_size=0.3, random_state=42)
         ID_train = X_train['ID']
         ID_test = X_valid['ID']
         X_train = X_train[feature_names].copy()

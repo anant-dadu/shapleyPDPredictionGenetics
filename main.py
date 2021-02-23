@@ -41,3 +41,15 @@ for name in names:
 
 with open('trainXGB_gpu.aucs', 'wb') as f:
         pickle.dump(RES, f)
+
+import pyensembl
+ensembl = pyensembl.EnsemblRelease(100)
+
+from tqdm import tqdm
+dict_map_result = {}
+for value in tqdm(temp[1]['X_train'].columns): # Feature name is a column of ENSGs.
+    if value[:4] == 'ENSG':
+        dict_map_result[value] = ensembl.gene_name_of_gene_id(value)
+
+with open('ENSG_gene.mapping', 'wb') as f:
+        pickle.dump(dict_map_result, f)

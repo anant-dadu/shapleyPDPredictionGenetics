@@ -24,6 +24,9 @@ def get_shapley_value_data(feature_set):
     shap_values_updated = shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns)
     train_samples = len(train[1]['X_train'])
     test_samples = len(train[1]['X_valid'])
+    with open('ENSG_gene.mapping', 'rb') as f:
+        dict_map_result = pickle.load(f)
+    X.columns = ['({}) {}'.format(dict_map_result[col], col) if dict_map_result.get(col, None) is not None else col for col in list(X.columns)]
     import copy
     shap_values_updated = copy.deepcopy(shap_values_updated) 
     patient_index = ['P{}'.format(e) for e, i in enumerate(ids)]

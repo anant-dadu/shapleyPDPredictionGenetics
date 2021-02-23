@@ -103,11 +103,11 @@ st.write("""Shows top-20 features that have the most significant impact on the c
 shap_type = 'trainXGB'
 col1, col2 = st.beta_columns(2)
 with col1:
-    fig, ax = plt.subplots(figsize=(10,20))
+    fig, ax = plt.subplots()
     shap.plots.beeswarm(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns), order=shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).abs.max(0), show=False, max_display=20)
     st.pyplot(fig)
 with col2:
-    fig, ax = plt.subplots(figsize=(10,20))
+    fig, ax = plt.subplots()
     shap.plots.bar(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).mean(0), show=False, max_display=20, order=shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).abs.max(0))
     # shap.plots.bar(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).mean(0), order=shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).abs.max(0), show=False, max_display=20)
     # shap.plots.bar(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).abs.mean(0), order=shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).abs.max(0), show=False, max_display=20)

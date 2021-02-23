@@ -1,5 +1,5 @@
 shap
 numpy
-streamlit
-matplotlib
 pandas
+streamlit==0.75.0
+matplotlib==3.3.3

@@ -231,7 +231,7 @@ with col6:
     st.info('Misclassifications (test): {}/{}'.format(misclassified[len_train:].sum(), len_test))
     fig, ax = plt.subplots()
     r = shap.decision_plot(exval, shap_values[misclassified], list(X.columns), link='logit', return_objects=True, new_base_value=0)
-    st.pyplot()
+    st.pyplot(fig)
 with col7:
     # st.info('Single Example')
     sel_patients = [patient_index[e] for e, i in enumerate(misclassified) if i==1]

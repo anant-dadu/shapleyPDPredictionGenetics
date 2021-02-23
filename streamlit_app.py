@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 @st.cache(allow_output_mutation=True)
-def get_shapley_value_data():
-    with open('trainXGB_new_data_gpu.model', 'rb') as f:
+def get_shapley_value_data(feature_set):
+    with open('trainXGB_gpu_{}.model'.format(feature_set), 'rb') as f:
             train = pickle.load(f)
     dataset_type = '' 
     shap_values = np.concatenate([train[0]['shap_values_train'], train[0]['shap_values_test']], axis=0)
@@ -26,7 +26,8 @@ def get_shapley_value_data():
     test_samples = len(train[1]['X_valid'])
     import copy
     shap_values_updated = copy.deepcopy(shap_values_updated) 
-    return (X, shap_values, exval, ids, auc_train, auc_test, labels_actual, labels_pred, shap_values_updated, train_samples, test_samples)
+    patient_index = ['P{}'.format(e) for e, i in enumerate(ids)]
+    return (X, shap_values, exval, patient_index, auc_train, auc_test, labels_actual, labels_pred, shap_values_updated, train_samples, test_samples)
 
 max_width = 4000
 padding_top = 10
@@ -56,10 +57,20 @@ st.markdown(
 
 import copy
 st.title('SHAP values on PD prediction from Genetics')
+with open('trainXGB_gpu.aucs', 'rb') as f:
+    RES = pickle.load(f)
+
+featset = ['ENSG', 'rs', 'rs_ENSG', 'all']
+df_res = pd.DataFrame({'Feature Set': featset, 'Train AUC': ["{:.2f}".format(RES[i][0]) for i in featset], 'Test AUC':  ["{:.2f}".format(RES[i][1]) for i in featset]})
+st.table(df_res.set_index('Feature Set'))
+# feature_set_my = st.radio( "Select the feature set", ('ENSG', 'rs', 'rs_ENSG', 'all'), index=3, format_func=lambda x: [" Train AUC:{:.2f} Test AUC:{:.3f}".format(RES[i]) for i in x])
+feature_set_my = st.radio( "Select the feature set", featset, index=3)
+
+
 st.header("Introduction")
 st.write(
     """
-    SHAP is an unified approach to explain the output of any supervised machine learning model. SHAP values are generated based on the idea that the change of an outcome to be explained with respect to a baseline can be attributed in different proportions to the model input features. In addition to assigning an importance value to every feature based on SHAP values, it shows the direction-of-effect at the level of the model as a whole. Furthermore, SHAP values provide both the global interpretability (i.e. collective SHAP values can show how much each predictor contributes) and local interpretability that explain why a sample receives its prediction. We built a surrogate XGBoost classification model to understand each individual genetic features’ effect on the Parkinsons’ disease classification. We randomly split the dataset into training (80%) and test (20%) sets. The model is trained on the training set and the SHAP score on the validation data is analyzed to better understand the impact of features. Specifically, We used tree SHAP algorithm designed to provide human interpretable explanations for tree based learning models. We did not perform parameter tuning for the surrogate model and the AUC score on the validation set is around 4-5% less as compared to the best model. 
+    SHAP is an unified approach to explain the output of any supervised machine learning model. SHAP values are generated based on the idea that the change of an outcome to be explained with respect to a baseline can be attributed in different proportions to the model input features. In addition to assigning an importance value to every feature based on SHAP values, it shows the direction-of-effect at the level of the model as a whole. Furthermore, SHAP values provide both the global interpretability (i.e. collective SHAP values can show how much each predictor contributes) and local interpretability that explain why a sample receives its prediction. We built a surrogate XGBoost classification model to understand each individual genetic features’ effect on the Parkinsons’ disease classification. We randomly split the dataset into training (70%) and test (30%) sets. The model is trained on the training set and the SHAP score on the validation data is analyzed to better understand the impact of features. Specifically, We used tree SHAP algorithm designed to provide human interpretable explanations for tree based learning models. We did not perform parameter tuning for the surrogate model. 
     """
 )
 
@@ -67,7 +78,7 @@ st.header("Results")
 
 
 data_load_state = st.text('Loading data...')
-cloned_output = copy.deepcopy(get_shapley_value_data())
+cloned_output = copy.deepcopy(get_shapley_value_data(feature_set_my))
 data_load_state.text("Done Data Loading! (using st.cache)")
 X, shap_values, exval, patient_index, auc_train, auc_test, labels_actual, labels_pred, shap_values_up, len_train, len_test = cloned_output 
 
@@ -98,11 +109,15 @@ with col2:
     # shap.plots.bar(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).abs.mean(0), order=shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).abs.max(0), show=False, max_display=20)
     st.pyplot(fig)
 
+# fig, ax = plt.subplots()
+# shap.plots.beeswarm(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns), order=shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).abs.max(0), show=False, max_display=20, link='logit')
+# st.pyplot(fig)
+
 st.subheader('Dependence Plots')
 st.write("""We can observe the interaction effects of different features in for predictions. To help reveal these interactions dependence_plot automatically lists (top-3) potential features for coloring. 
 Furthermore, we can observe the relationship betweem features and SHAP values for prediction using the dependence plots, which compares the actual feature value (x-axis) against the SHAP score (y-axis). 
 It shows that the effect of feature values is not a simple relationship where increase in the feature value leads to consistent changes in model output but a complicated non-linear relationship.""")
-feature_name = st.selectbox('Select a feature for dependence plot', options=list(X.columns), index=list(X.columns).index('UPSIT'))
+feature_name = st.selectbox('Select a feature for dependence plot', options=list(X.columns))
 inds = shap.utils.potential_interactions(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns)[:, feature_name], shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns))
 
 st.write('Top3 Potential Interactions for ***{}***'.format(feature_name))
@@ -217,7 +232,7 @@ with col6:
 with col7:
     # st.info('Single Example')
     sel_patients = [patient_index[e] for e, i in enumerate(misclassified) if i==1]
-    select_pats = st.selectbox('Select misclassified patient id', options=list(sel_patients), index=sel_patients.index("PP-3537"))
+    select_pats = st.selectbox('Select misclassified patient id', options=list(sel_patients))
     id_sel_pats = sel_patients.index(select_pats)
     fig, ax = plt.subplots()
     shap.decision_plot(exval, shap_values[misclassified][id_sel_pats], X.iloc[misclassified,:].iloc[id_sel_pats], link='logit', feature_order=r.feature_idx, highlight=0, new_base_value=0)

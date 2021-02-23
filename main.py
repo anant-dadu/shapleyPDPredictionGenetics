@@ -16,8 +16,28 @@ ppmi_traineddata_df = pd.read_hdf(ppmi_traineddata_path, key='dataForML', mode='
 matchingCols_file = open(column_name_path, "r")
 matching_column_names_list = matchingCols_file.read().splitlines()
 ppmi_traineddata_df = ppmi_traineddata_df[np.intersect1d(ppmi_traineddata_df.columns, matching_column_names_list)]
-obj = ShapleyExplainations()
-train = obj.trainXGBModel(ppmi_traineddata_df, k, 'PHENO')
+
+features_starts = ['ENSG', 'rs', 'ENSG_rs', 'all_features']
+feat1 = [i for i in k if i[:4]=='ENSG']
+feat2 = [i for i in k if i[:2]=='rs']
+feat3 = [i for i in k if i[:2]=='rs' or i[:4]=='ENSG']
+feat4 = k
+names = ['ENSG', 'rs', 'rs_ENSG', 'all']
 import pickle
-with open('trainXGB_new_data_gpu.model', 'wb') as f:
+for e, feat in enumerate([feat1, feat2, feat3, feat4]):
+    obj = ShapleyExplainations()
+    train = obj.trainXGBModel(ppmi_traineddata_df, feat, 'PHENO')
+    with open('trainXGB_gpu_{}.model'.format(names[e]), 'wb') as f:
         pickle.dump(train, f)
+
+DF = {}
+RES = {}
+for name in names:
+    with open('trainXGB_gpu_{}.model'.format(name), 'rb') as f:
+        temp = pickle.load(f)
+    DF[name] = list(temp[3]['ID_test'])
+    RES[name] = (temp[3]['AUC_train'], temp[3]['AUC_test'])
+    print (name, RES[name])
+
+with open('trainXGB_gpu.aucs', 'wb') as f:
+        pickle.dump(RES, f)

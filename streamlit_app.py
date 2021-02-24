@@ -30,7 +30,7 @@ def get_shapley_value_data(feature_set):
     import copy
     shap_values_updated = copy.deepcopy(shap_values_updated) 
     patient_index = ['P{}'.format(e) for e, i in enumerate(ids)]
-    patient_index = copy.copy(idx)
+    patient_index = copy.copy(ids)
     return (X, shap_values, exval, patient_index, auc_train, auc_test, labels_actual, labels_pred, shap_values_updated, train_samples, test_samples)
 
 max_width = 4000

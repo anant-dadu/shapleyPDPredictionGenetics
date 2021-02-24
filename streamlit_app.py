@@ -30,6 +30,7 @@ def get_shapley_value_data(feature_set):
     import copy
     shap_values_updated = copy.deepcopy(shap_values_updated) 
     patient_index = ['P{}'.format(e) for e, i in enumerate(ids)]
+    patient_index = copy.copy(idx)
     return (X, shap_values, exval, patient_index, auc_train, auc_test, labels_actual, labels_pred, shap_values_updated, train_samples, test_samples)
 
 max_width = 4000
@@ -150,7 +151,7 @@ st.write("""
     This shows how each feature contributes to the overall prediction.
 """)
 # labels_pred_new = np.array(labels_pred, dtype=np.float)
-labels_actual_new = np.array(labels_actual, dtype=np.float)
+labels_actual_new = np.array(labels_actual, dtype=np.float64)
 y_pred = (shap_values.sum(1) + exval) > 0
 misclassified = y_pred != labels_actual_new
 
@@ -160,11 +161,11 @@ col3, col4, col5 = st.beta_columns(3)
 with col3:
     st.write('Typical Prediction Path: Uncertainity (0.3-0.7)')
     r = shap.decision_plot(exval, np.copy(shap_values), list(X.columns), feature_order='hclust', return_objects=True, show=False)
-    T = X.iloc[(np.array(labels_pred, dtype=np.float) >= 0.3) & (np.array(labels_pred, dtype=np.float) <= 0.7)]
+    T = X.iloc[(np.array(labels_pred, dtype=np.float64) >= 0.3) & (np.array(labels_pred, dtype=np.float64) <= 0.7)]
     import warnings
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        sh = np.copy(shap_values)[(np.array(labels_pred, dtype=np.float) >= 0.3) & (np.array(labels_pred, dtype=np.float) <= 0.7), :]
+        sh = np.copy(shap_values)[(np.array(labels_pred, dtype=np.float64) >= 0.3) & (np.array(labels_pred, dtype=np.float64) <= 0.7), :]
     fig, ax = plt.subplots()
     shap.decision_plot(exval, sh, T, show=False, feature_order=r.feature_idx, link='logit', return_objects=True, new_base_value=0)
     st.pyplot(fig)
@@ -174,21 +175,21 @@ with col3:
 with col4:
     st.write('Typical Prediction Path: Positive Class (>=0.95)')
     fig, ax = plt.subplots()
-    T = X.iloc[np.array(labels_pred, dtype=np.float) >= 0.95]
+    T = X.iloc[np.array(labels_pred, dtype=np.float64) >= 0.95]
     import warnings
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float) >= 0.95, :]
+        sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float64) >= 0.95, :]
     shap.decision_plot(exval, sh, T, show=False, link='logit',  feature_order=r.feature_idx, new_base_value=0)
     st.pyplot(fig)
 with col5:
     st.write('Typical Prediction Path: Negative Class (<=0.05)')
     fig, ax = plt.subplots()
-    T = X.iloc[np.array(labels_pred, dtype=np.float) <= 0.05]
+    T = X.iloc[np.array(labels_pred, dtype=np.float64) <= 0.05]
     import warnings
     with warnings.catch_warnings():
            warnings.simplefilter("ignore")
-           sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float) <= 0.05, :]
+           sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float64) <= 0.05, :]
     shap.decision_plot(exval, sh, T, show=False, link='logit', feature_order=r.feature_idx, new_base_value=0)
     st.pyplot(fig)
 
@@ -197,11 +198,11 @@ col31, col41, col51 = st.beta_columns(3)
 with col31:
     st.write('Typical Prediction Path: Uncertainity (0.3-0.7)')
     r = shap.decision_plot(exval, np.copy(shap_values), list(X.columns), return_objects=True, show=False)
-    T = X.iloc[(np.array(labels_pred, dtype=np.float) >= 0.3) & (np.array(labels_pred, dtype=np.float) <= 0.7)]
+    T = X.iloc[(np.array(labels_pred, dtype=np.float64) >= 0.3) & (np.array(labels_pred, dtype=np.float64) <= 0.7)]
     import warnings
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        sh = np.copy(shap_values)[(np.array(labels_pred, dtype=np.float) >= 0.3) & (np.array(labels_pred, dtype=np.float) <= 0.7), :]
+        sh = np.copy(shap_values)[(np.array(labels_pred, dtype=np.float64) >= 0.3) & (np.array(labels_pred, dtype=np.float64) <= 0.7), :]
     fig, ax = plt.subplots()
     shap.decision_plot(exval, sh, T, show=False, feature_order=r.feature_idx, link='logit', return_objects=True, new_base_value=0)
     st.pyplot(fig)
@@ -211,21 +212,21 @@ with col31:
 with col41:
     st.write('Typical Prediction Path: Positive Class (>=0.95)')
     fig, ax = plt.subplots()
-    T = X.iloc[np.array(labels_pred, dtype=np.float) >= 0.95]
+    T = X.iloc[np.array(labels_pred, dtype=np.float64) >= 0.95]
     import warnings
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float) >= 0.95, :]
+        sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float64) >= 0.95, :]
     shap.decision_plot(exval, sh, T, show=False, link='logit',  feature_order=r.feature_idx, new_base_value=0)
     st.pyplot(fig)
 with col51:
     st.write('Typical Prediction Path: Negative Class (<=0.05)')
     fig, ax = plt.subplots()
-    T = X.iloc[np.array(labels_pred, dtype=np.float) <= 0.05]
+    T = X.iloc[np.array(labels_pred, dtype=np.float64) <= 0.05]
     import warnings
     with warnings.catch_warnings():
            warnings.simplefilter("ignore")
-           sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float) <= 0.05, :]
+           sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float64) <= 0.05, :]
     shap.decision_plot(exval, sh, T, show=False, link='logit', feature_order=r.feature_idx, new_base_value=0)
     st.pyplot(fig)
 

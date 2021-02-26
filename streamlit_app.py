@@ -8,11 +8,8 @@ import shap
 import matplotlib.pyplot as plt
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
-with open('ENSG_gene.mapping', 'rb') as f:
-    dict_map_result = pickle.load(f)
-
 @st.cache(allow_output_mutation=True)
-def get_shapley_value_data(train):
+def get_shapley_value_data(train, dict_map_result):
     dataset_type = '' 
     shap_values = np.concatenate([train[0]['shap_values_train'], train[0]['shap_values_test']], axis=0)
     X = pd.concat([train[1]['X_train'], train[1]['X_valid']], axis=0)
@@ -86,8 +83,12 @@ st.header("Results")
 with open('trainXGB_gpu_{}.model'.format(feature_set_my), 'rb') as f:
     train = pickle.load(f)
 
+with open('ENSG_gene.mapping', 'rb') as f:
+    dict_map_result = pickle.load(f)
+
+
 data_load_state = st.text('Loading data...')
-cloned_output = copy.deepcopy(get_shapley_value_data(train))
+cloned_output = copy.deepcopy(get_shapley_value_data(train, dict_map_result))
 data_load_state.text("Done Data Loading! (using st.cache)")
 X, shap_values, exval, patient_index, auc_train, auc_test, labels_actual, labels_pred, shap_values_up, len_train, len_test = cloned_output 
 

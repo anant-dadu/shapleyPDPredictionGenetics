@@ -29,8 +29,10 @@ def get_shapley_value_data(feature_set):
     X.columns = ['({}) {}'.format(dict_map_result[col], col) if dict_map_result.get(col, None) is not None else col for col in list(X.columns)]
     import copy
     shap_values_updated = copy.deepcopy(shap_values_updated) 
-    patient_index = ['P{}'.format(e) for e, i in enumerate(ids)]
-    patient_index = copy.copy(ids)
+    # patient_index = ['P{}'.format(e) for e, i in enumerate(ids)]
+    import hashlib
+    patient_index = [hashlib.md5(s.encode()).hexdigest() for e, s in enumerate(ids)]
+    # patient_index = copy.copy(ids)
     return (X, shap_values, exval, patient_index, auc_train, auc_test, labels_actual, labels_pred, shap_values_updated, train_samples, test_samples)
 
 max_width = 4000

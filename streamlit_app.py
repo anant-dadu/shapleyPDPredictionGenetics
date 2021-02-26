@@ -32,6 +32,9 @@ def get_shapley_value_data(feature_set):
     # patient_index = ['P{}'.format(e) for e, i in enumerate(ids)]
     import hashlib
     patient_index = [hashlib.md5(s.encode()).hexdigest() for e, s in enumerate(ids)]
+    # zfile = ['{},{}'.format(ids[i], patient_index[i]) for i in range(len(ids))]
+    # with open('mapping_id.txt', 'w') as f:
+    #     f.write('\n'.join(zfile))
     # patient_index = copy.copy(ids)
     return (X, shap_values, exval, patient_index, auc_train, auc_test, labels_actual, labels_pred, shap_values_updated, train_samples, test_samples)
 

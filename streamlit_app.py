@@ -8,10 +8,11 @@ import shap
 import matplotlib.pyplot as plt
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
+with open('ENSG_gene.mapping', 'rb') as f:
+    dict_map_result = pickle.load(f)
+
 @st.cache(allow_output_mutation=True)
-def get_shapley_value_data(feature_set):
-    with open('trainXGB_gpu_{}.model'.format(feature_set), 'rb') as f:
-            train = pickle.load(f)
+def get_shapley_value_data(train):
     dataset_type = '' 
     shap_values = np.concatenate([train[0]['shap_values_train'], train[0]['shap_values_test']], axis=0)
     X = pd.concat([train[1]['X_train'], train[1]['X_valid']], axis=0)
@@ -24,8 +25,6 @@ def get_shapley_value_data(feature_set):
     shap_values_updated = shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns)
     train_samples = len(train[1]['X_train'])
     test_samples = len(train[1]['X_valid'])
-    with open('ENSG_gene.mapping', 'rb') as f:
-        dict_map_result = pickle.load(f)
     X.columns = ['({}) {}'.format(dict_map_result[col], col) if dict_map_result.get(col, None) is not None else col for col in list(X.columns)]
     import copy
     shap_values_updated = copy.deepcopy(shap_values_updated) 
@@ -84,10 +83,11 @@ st.write(
 )
 
 st.header("Results")
-
+with open('trainXGB_gpu_{}.model'.format(feature_set_my), 'rb') as f:
+    train = pickle.load(f)
 
 data_load_state = st.text('Loading data...')
-cloned_output = copy.deepcopy(get_shapley_value_data(feature_set_my))
+cloned_output = copy.deepcopy(get_shapley_value_data(train))
 data_load_state.text("Done Data Loading! (using st.cache)")
 X, shap_values, exval, patient_index, auc_train, auc_test, labels_actual, labels_pred, shap_values_up, len_train, len_test = cloned_output 
 

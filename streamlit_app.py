@@ -107,16 +107,17 @@ with col00:
 st.write('***Class Labels:***', {'PD': 1.0, 'Control': 0.0})
 st.subheader('Summary Plot')
 st.write("""Shows top-20 features that have the most significant impact on the classification model. In the figure, it shows that University of Pennsylvania Smell Identification Test (UP SIT) is the most important factor. It also indicates that lower UPSIT feature (blue color) value corresponds to higher probability of PD, as most of the blue colored points lie on the right side of baseline. On the other end, for PRS90, lower expression values align with more healthy behaviour as blue colored points on the plot have negative impact on the model output. In this way, we can also observe that the directionality of different genetic features is not uniform.""")
-shap_type = 'trainXGB'
-col1, col2 = st.beta_columns(2)
-with col1:
-    fig, ax = plt.subplots()
-    shap.plots.beeswarm(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns), show=False, max_display=50, order = shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).mean(0).abs)# , return_objects=True 
-    st.pyplot()
-with col2:
-    fig, ax = plt.subplots()
-    shap.plots.bar(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).mean(0), show=False, max_display=50, order=shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).mean(0).abs)
-    st.pyplot(fig)
+if st.checkbox('Show Plots'):
+    shap_type = 'trainXGB'
+    col1, col2 = st.beta_columns(2)
+    with col1:
+        fig, ax = plt.subplots()
+        shap.plots.beeswarm(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns), show=False, max_display=20, order = shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).mean(0).abs)# , return_objects=True 
+        st.pyplot()
+    with col2:
+        fig, ax = plt.subplots()
+        shap.plots.bar(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).mean(0), show=False, max_display=20, order=shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).mean(0).abs)
+        st.pyplot(fig)
 
 # shap.plots.beeswarm(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns), order=shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns).mean(0).abs, show=False, max_display=50)
     # r1 = shap.decision_plot(exval, np.copy(shap_values), list(X.columns), return_objects=True, show=False)
@@ -135,16 +136,17 @@ feature_name = st.selectbox('Select a feature for dependence plot', options=list
 inds = shap.utils.potential_interactions(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns)[:, feature_name], shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns))
 
 st.write('Top3 Potential Interactions for ***{}***'.format(feature_name))
-col3, col4, col5 = st.beta_columns(3)
-with col3:
-    shap.dependence_plot(feature_name, np.copy(shap_values), X.copy(), interaction_index=list(X.columns).index(list(X.columns)[inds[0]]))
-    st.pyplot()
-with col4:
-    shap.dependence_plot(feature_name, np.copy(shap_values), X.copy(), interaction_index=list(X.columns).index(list(X.columns)[inds[1]]))
-    st.pyplot()
-with col5:
-    shap.dependence_plot(feature_name, np.copy(shap_values), X.copy(), interaction_index=list(X.columns).index(list(X.columns)[inds[2]]))
-    st.pyplot()
+if st.checkbox('Show Plots'):
+    col3, col4, col5 = st.beta_columns(3)
+    with col3:
+        shap.dependence_plot(feature_name, np.copy(shap_values), X.copy(), interaction_index=list(X.columns).index(list(X.columns)[inds[0]]))
+        st.pyplot()
+    with col4:
+        shap.dependence_plot(feature_name, np.copy(shap_values), X.copy(), interaction_index=list(X.columns).index(list(X.columns)[inds[1]]))
+        st.pyplot()
+    with col5:
+        shap.dependence_plot(feature_name, np.copy(shap_values), X.copy(), interaction_index=list(X.columns).index(list(X.columns)[inds[2]]))
+        st.pyplot()
 
 st.subheader('Decision Plots')
 st.write("""
@@ -162,120 +164,124 @@ misclassified = y_pred != labels_actual_new
 
 
 st.write('#### Pathways for Prediction (Hierarchical Clustering)')
-col3, col4, col5 = st.beta_columns(3)
-with col3:
-    st.write('Typical Prediction Path: Uncertainity (0.3-0.7)')
-    r = shap.decision_plot(exval, np.copy(shap_values), list(X.columns), feature_order='hclust', return_objects=True, show=False)
-    T = X.iloc[(np.array(labels_pred, dtype=np.float64) >= 0.3) & (np.array(labels_pred, dtype=np.float64) <= 0.7)]
-    import warnings
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        sh = np.copy(shap_values)[(np.array(labels_pred, dtype=np.float64) >= 0.3) & (np.array(labels_pred, dtype=np.float64) <= 0.7), :]
-    fig, ax = plt.subplots()
-    shap.decision_plot(exval, sh, T, show=False, feature_order=r.feature_idx, link='logit', return_objects=True, new_base_value=0)
-    st.pyplot(fig)
-    # fig, ax = plt.subplots()
-    # r = shap.decision_plot(exval, np.copy(shap_values), list(X.columns), feature_order='hclust', return_objects=True)
-    # st.pyplot()
-with col4:
-    st.write('Typical Prediction Path: Positive Class (>=0.95)')
-    fig, ax = plt.subplots()
-    T = X.iloc[np.array(labels_pred, dtype=np.float64) >= 0.95]
-    import warnings
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float64) >= 0.95, :]
-    shap.decision_plot(exval, sh, T, show=False, link='logit',  feature_order=r.feature_idx, new_base_value=0)
-    st.pyplot(fig)
-with col5:
-    st.write('Typical Prediction Path: Negative Class (<=0.05)')
-    fig, ax = plt.subplots()
-    T = X.iloc[np.array(labels_pred, dtype=np.float64) <= 0.05]
-    import warnings
-    with warnings.catch_warnings():
-           warnings.simplefilter("ignore")
-           sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float64) <= 0.05, :]
-    shap.decision_plot(exval, sh, T, show=False, link='logit', feature_order=r.feature_idx, new_base_value=0)
-    st.pyplot(fig)
+if st.checkbox('Show Plots'):
+    col3, col4, col5 = st.beta_columns(3)
+    with col3:
+        st.write('Typical Prediction Path: Uncertainity (0.3-0.7)')
+        r = shap.decision_plot(exval, np.copy(shap_values), list(X.columns), feature_order='hclust', return_objects=True, show=False)
+        T = X.iloc[(np.array(labels_pred, dtype=np.float64) >= 0.3) & (np.array(labels_pred, dtype=np.float64) <= 0.7)]
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            sh = np.copy(shap_values)[(np.array(labels_pred, dtype=np.float64) >= 0.3) & (np.array(labels_pred, dtype=np.float64) <= 0.7), :]
+        fig, ax = plt.subplots()
+        shap.decision_plot(exval, sh, T, show=False, feature_order=r.feature_idx, link='logit', return_objects=True, new_base_value=0)
+        st.pyplot(fig)
+        # fig, ax = plt.subplots()
+        # r = shap.decision_plot(exval, np.copy(shap_values), list(X.columns), feature_order='hclust', return_objects=True)
+        # st.pyplot()
+    with col4:
+        st.write('Typical Prediction Path: Positive Class (>=0.95)')
+        fig, ax = plt.subplots()
+        T = X.iloc[np.array(labels_pred, dtype=np.float64) >= 0.95]
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float64) >= 0.95, :]
+        shap.decision_plot(exval, sh, T, show=False, link='logit',  feature_order=r.feature_idx, new_base_value=0)
+        st.pyplot(fig)
+    with col5:
+        st.write('Typical Prediction Path: Negative Class (<=0.05)')
+        fig, ax = plt.subplots()
+        T = X.iloc[np.array(labels_pred, dtype=np.float64) <= 0.05]
+        import warnings
+        with warnings.catch_warnings():
+               warnings.simplefilter("ignore")
+               sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float64) <= 0.05, :]
+        shap.decision_plot(exval, sh, T, show=False, link='logit', feature_order=r.feature_idx, new_base_value=0)
+        st.pyplot(fig)
 
 st.write('#### Pathways for Prediction (Feature Importance)')
-col31, col41, col51 = st.beta_columns(3)
-with col31:
-    st.write('Typical Prediction Path: Uncertainity (0.3-0.7)')
-    r = shap.decision_plot(exval, np.copy(shap_values), list(X.columns), return_objects=True, show=False)
-    T = X.iloc[(np.array(labels_pred, dtype=np.float64) >= 0.3) & (np.array(labels_pred, dtype=np.float64) <= 0.7)]
-    import warnings
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        sh = np.copy(shap_values)[(np.array(labels_pred, dtype=np.float64) >= 0.3) & (np.array(labels_pred, dtype=np.float64) <= 0.7), :]
-    fig, ax = plt.subplots()
-    shap.decision_plot(exval, sh, T, show=False, feature_order=r.feature_idx, link='logit', return_objects=True, new_base_value=0)
-    st.pyplot(fig)
-    # fig, ax = plt.subplots()
-    # r = shap.decision_plot(exval, np.copy(shap_values), list(X.columns), feature_order='hclust', return_objects=True)
-    # st.pyplot()
-with col41:
-    st.write('Typical Prediction Path: Positive Class (>=0.95)')
-    fig, ax = plt.subplots()
-    T = X.iloc[np.array(labels_pred, dtype=np.float64) >= 0.95]
-    import warnings
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float64) >= 0.95, :]
-    shap.decision_plot(exval, sh, T, show=False, link='logit',  feature_order=r.feature_idx, new_base_value=0)
-    st.pyplot(fig)
-with col51:
-    st.write('Typical Prediction Path: Negative Class (<=0.05)')
-    fig, ax = plt.subplots()
-    T = X.iloc[np.array(labels_pred, dtype=np.float64) <= 0.05]
-    import warnings
-    with warnings.catch_warnings():
-           warnings.simplefilter("ignore")
-           sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float64) <= 0.05, :]
-    shap.decision_plot(exval, sh, T, show=False, link='logit', feature_order=r.feature_idx, new_base_value=0)
-    st.pyplot(fig)
+if st.checkbox('Show Plots'):
+    col31, col41, col51 = st.beta_columns(3)
+    with col31:
+        st.write('Typical Prediction Path: Uncertainity (0.3-0.7)')
+        r = shap.decision_plot(exval, np.copy(shap_values), list(X.columns), return_objects=True, show=False)
+        T = X.iloc[(np.array(labels_pred, dtype=np.float64) >= 0.3) & (np.array(labels_pred, dtype=np.float64) <= 0.7)]
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            sh = np.copy(shap_values)[(np.array(labels_pred, dtype=np.float64) >= 0.3) & (np.array(labels_pred, dtype=np.float64) <= 0.7), :]
+        fig, ax = plt.subplots()
+        shap.decision_plot(exval, sh, T, show=False, feature_order=r.feature_idx, link='logit', return_objects=True, new_base_value=0)
+        st.pyplot(fig)
+        # fig, ax = plt.subplots()
+        # r = shap.decision_plot(exval, np.copy(shap_values), list(X.columns), feature_order='hclust', return_objects=True)
+        # st.pyplot()
+    with col41:
+        st.write('Typical Prediction Path: Positive Class (>=0.95)')
+        fig, ax = plt.subplots()
+        T = X.iloc[np.array(labels_pred, dtype=np.float64) >= 0.95]
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float64) >= 0.95, :]
+        shap.decision_plot(exval, sh, T, show=False, link='logit',  feature_order=r.feature_idx, new_base_value=0)
+        st.pyplot(fig)
+    with col51:
+        st.write('Typical Prediction Path: Negative Class (<=0.05)')
+        fig, ax = plt.subplots()
+        T = X.iloc[np.array(labels_pred, dtype=np.float64) <= 0.05]
+        import warnings
+        with warnings.catch_warnings():
+               warnings.simplefilter("ignore")
+               sh = np.copy(shap_values)[np.array(labels_pred, dtype=np.float64) <= 0.05, :]
+        shap.decision_plot(exval, sh, T, show=False, link='logit', feature_order=r.feature_idx, new_base_value=0)
+        st.pyplot(fig)
 
 
 st.write('#### Pathways for Misclassified Samples')
-col6, col7 = st.beta_columns(2)
-with col6:
-    st.info('Misclassifications (test): {}/{}'.format(misclassified[len_train:].sum(), len_test))
-    fig, ax = plt.subplots()
-    r = shap.decision_plot(exval, shap_values[misclassified], list(X.columns), link='logit', return_objects=True, new_base_value=0)
-    st.pyplot(fig)
-with col7:
-    # st.info('Single Example')
-    sel_patients = [patient_index[e] for e, i in enumerate(misclassified) if i==1]
-    select_pats = st.selectbox('Select misclassified patient id', options=list(sel_patients))
-    id_sel_pats = sel_patients.index(select_pats)
-    fig, ax = plt.subplots()
-    shap.decision_plot(exval, shap_values[misclassified][id_sel_pats], X.iloc[misclassified,:].iloc[id_sel_pats], link='logit', feature_order=r.feature_idx, highlight=0, new_base_value=0)
-    st.pyplot()
+if st.checkbox('Show Plots'):
+    col6, col7 = st.beta_columns(2)
+    with col6:
+        st.info('Misclassifications (test): {}/{}'.format(misclassified[len_train:].sum(), len_test))
+        fig, ax = plt.subplots()
+        r = shap.decision_plot(exval, shap_values[misclassified], list(X.columns), link='logit', return_objects=True, new_base_value=0)
+        st.pyplot(fig)
+    with col7:
+        # st.info('Single Example')
+        sel_patients = [patient_index[e] for e, i in enumerate(misclassified) if i==1]
+        select_pats = st.selectbox('Select misclassified patient id', options=list(sel_patients))
+        id_sel_pats = sel_patients.index(select_pats)
+        fig, ax = plt.subplots()
+        shap.decision_plot(exval, shap_values[misclassified][id_sel_pats], X.iloc[misclassified,:].iloc[id_sel_pats], link='logit', feature_order=r.feature_idx, highlight=0, new_base_value=0)
+        st.pyplot()
 
 
 
 st.subheader('Data')
-df = pd.DataFrame({'ID': patient_index,
-                      'Actual Label': labels_actual,
-                      'Predicted Label (PD probability)': labels_pred,
-                      'Split': ['train']*len_train + ['test']*len_test,
-                      'Correctness': [ not i for i in misclassified]
-                     })
-df['Actual Label'] = df['Actual Label'].map(lambda x: 'PD' if x==1 else 'HC')
-df['Predicted Label (PD probability)'] = df['Predicted Label (PD probability)'].map(lambda x: round(float(x), 2))
-# if st.checkbox('Show Misclassified Samples'):
-#     df_up = df.copy()# [misclassified]
-# else:
-#     df_up = df.copy()
-df_up = df.copy()
-df_up = df_up.set_index('ID').sort_values(by=[ 'Split', 'Correctness'])
-df_up = df_up[df_up['Split']=='test'].sort_values(by=['Split', 'Correctness', 'Predicted Label (PD probability)'])
-selected = list(df_up[df_up['Correctness']==0].index)
-st.write('#### {} Data Labels'.format('PPMI'.upper()))
-st.write ('The table shows the predictions on the test data. Rows highlighted with light green colors are the misclassified examples.')
-st.table(df_up.style.apply(lambda x: ['background: lightgreen'
-                                  if (x.name in selected)
-                                  else '' for i in x], axis=1))
+if st.checkbox('Show Table'):
+    df = pd.DataFrame({'ID': patient_index,
+                          'Actual Label': labels_actual,
+                          'Predicted Label (PD probability)': labels_pred,
+                          'Split': ['train']*len_train + ['test']*len_test,
+                          'Correctness': [ not i for i in misclassified]
+                         })
+    df['Actual Label'] = df['Actual Label'].map(lambda x: 'PD' if x==1 else 'HC')
+    df['Predicted Label (PD probability)'] = df['Predicted Label (PD probability)'].map(lambda x: round(float(x), 2))
+    # if st.checkbox('Show Misclassified Samples'):
+    #     df_up = df.copy()# [misclassified]
+    # else:
+    #     df_up = df.copy()
+    df_up = df.copy()
+    df_up = df_up.set_index('ID').sort_values(by=[ 'Split', 'Correctness'])
+    df_up = df_up[df_up['Split']=='test'].sort_values(by=['Split', 'Correctness', 'Predicted Label (PD probability)'])
+    selected = list(df_up[df_up['Correctness']==0].index)
+    st.write('#### {} Data Labels'.format('PPMI'.upper()))
+    st.write ('The table shows the predictions on the test data. Rows highlighted with light green colors are the misclassified examples.')
+    st.table(df_up.style.apply(lambda x: ['background: lightgreen'
+                                      if (x.name in selected)
+                                      else '' for i in x], axis=1))
 
 
 
@@ -283,22 +289,23 @@ st.subheader('Force Plots')
 st.write("""
 The above explanation shows features each contributing to push the model output from the base value (the average model output over the training dataset we passed) to the model output. Features pushing the prediction higher are shown in red, those pushing the prediction lower are in blue.
 """)
-patient_name = st.selectbox('Select patient id', options=list(patient_index))
-# st.info('You selected ***{}***'.format(patient_name))
-sample_id = patient_index.index(patient_name)
-col8, col9 = st.beta_columns(2)
-with col8:
-    st.info('Actual Label: ***{}***'.format('PD' if labels_actual[sample_id]==1 else 'HC'))
-    st.info('Predicted PD class Probability: ***{}***'.format(round(float(labels_pred[sample_id]), 2)))
-with col9:
-    shap.force_plot(exval, shap_values[sample_id,:], X.iloc[sample_id,:], show=False, matplotlib=True)
-    st.pyplot()
-
-col10, col11 = st.beta_columns(2)
-with col10:
-    fig, ax = plt.subplots()
-    shap.decision_plot(exval, shap_values[sample_id], X.iloc[sample_id], link='logit', highlight=0, new_base_value=0)
-    st.pyplot()
+if st.checkbox('Show Plots'):
+    patient_name = st.selectbox('Select patient id', options=list(patient_index))
+    # st.info('You selected ***{}***'.format(patient_name))
+    sample_id = patient_index.index(patient_name)
+    col8, col9 = st.beta_columns(2)
+    with col8:
+        st.info('Actual Label: ***{}***'.format('PD' if labels_actual[sample_id]==1 else 'HC'))
+        st.info('Predicted PD class Probability: ***{}***'.format(round(float(labels_pred[sample_id]), 2)))
+    with col9:
+        shap.force_plot(exval, shap_values[sample_id,:], X.iloc[sample_id,:], show=False, matplotlib=True)
+        st.pyplot()
+    
+    col10, col11 = st.beta_columns(2)
+    with col10:
+        fig, ax = plt.subplots()
+        shap.decision_plot(exval, shap_values[sample_id], X.iloc[sample_id], link='logit', highlight=0, new_base_value=0)
+        st.pyplot()
 
 
 

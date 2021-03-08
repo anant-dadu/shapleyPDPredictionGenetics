@@ -1,5 +1,9 @@
-shap
-numpy
-pandas
-streamlit==0.75.0
-matplotlib==3.3.3
+altair==4.1.0
+matplotlib==3.3.4
+numpy==1.20.1
+omegaconf==2.0.6
+pandas==1.2.3
+plotly==4.14.3
+scikit_learn==0.24.1
+shap==0.39.0
+streamlit==0.78.0

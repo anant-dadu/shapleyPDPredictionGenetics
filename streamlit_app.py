@@ -107,7 +107,7 @@ with col00:
 st.write('***Class Labels:***', {'PD': 1.0, 'Control': 0.0})
 st.subheader('Summary Plot')
 st.write("""Shows top-20 features that have the most significant impact on the classification model. In the figure, it shows that University of Pennsylvania Smell Identification Test (UP SIT) is the most important factor. It also indicates that lower UPSIT feature (blue color) value corresponds to higher probability of PD, as most of the blue colored points lie on the right side of baseline. On the other end, for PRS90, lower expression values align with more healthy behaviour as blue colored points on the plot have negative impact on the model output. In this way, we can also observe that the directionality of different genetic features is not uniform.""")
-if st.checkbox('Show Plots'):
+if st.checkbox('Show Summary Plots'):
     shap_type = 'trainXGB'
     col1, col2 = st.beta_columns(2)
     with col1:
@@ -136,7 +136,7 @@ feature_name = st.selectbox('Select a feature for dependence plot', options=list
 inds = shap.utils.potential_interactions(shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns)[:, feature_name], shap.Explanation(values=np.copy(shap_values), base_values=np.array([exval]*len(X)), data=np.copy(X.values), feature_names=X.columns))
 
 st.write('Top3 Potential Interactions for ***{}***'.format(feature_name))
-if st.checkbox('Show Plots'):
+if st.checkbox('Show Dependence Plots'):
     col3, col4, col5 = st.beta_columns(3)
     with col3:
         shap.dependence_plot(feature_name, np.copy(shap_values), X.copy(), interaction_index=list(X.columns).index(list(X.columns)[inds[0]]))
@@ -164,7 +164,7 @@ misclassified = y_pred != labels_actual_new
 
 
 st.write('#### Pathways for Prediction (Hierarchical Clustering)')
-if st.checkbox('Show Plots'):
+if st.checkbox('Show Decision Plots'):
     col3, col4, col5 = st.beta_columns(3)
     with col3:
         st.write('Typical Prediction Path: Uncertainity (0.3-0.7)')
@@ -202,7 +202,7 @@ if st.checkbox('Show Plots'):
         st.pyplot(fig)
 
 st.write('#### Pathways for Prediction (Feature Importance)')
-if st.checkbox('Show Plots'):
+if st.checkbox('Show Pathways Plots'):
     col31, col41, col51 = st.beta_columns(3)
     with col31:
         st.write('Typical Prediction Path: Uncertainity (0.3-0.7)')
@@ -241,7 +241,7 @@ if st.checkbox('Show Plots'):
 
 
 st.write('#### Pathways for Misclassified Samples')
-if st.checkbox('Show Plots'):
+if st.checkbox('Show Misclassified Plots'):
     col6, col7 = st.beta_columns(2)
     with col6:
         st.info('Misclassifications (test): {}/{}'.format(misclassified[len_train:].sum(), len_test))
@@ -289,7 +289,7 @@ st.subheader('Force Plots')
 st.write("""
 The above explanation shows features each contributing to push the model output from the base value (the average model output over the training dataset we passed) to the model output. Features pushing the prediction higher are shown in red, those pushing the prediction lower are in blue.
 """)
-if st.checkbox('Show Plots'):
+if st.checkbox('Show Force Plots'):
     patient_name = st.selectbox('Select patient id', options=list(patient_index))
     # st.info('You selected ***{}***'.format(patient_name))
     sample_id = patient_index.index(patient_name)
